@@ -139,7 +139,7 @@ const TimelineItem = ({
 
   return (
     <StyledWrapper>
-      <div className={`tl-row-wrap ${isOauth2 ? 'tl-row-wrap--oauth2' : ''}`}>
+      <div className={`tl-row-wrap ${isOauth2 ? 'tl-row-wrap--oauth2' : ''}`} data-testid="timeline-entry">
         <div
           className={`tl-row ${isExpanded ? 'is-expanded' : ''}`}
           role="button"
@@ -147,6 +147,7 @@ const TimelineItem = ({
           aria-expanded={isExpanded}
           onClick={toggleExpand}
           onKeyDown={handleRowKeyDown}
+          data-testid="timeline-item-header"
         >
           <div className="tl-col-chev">
             {isExpanded ? <IconChevronDown size={14} strokeWidth={2} /> : <IconChevronRight size={14} strokeWidth={2} />}
@@ -157,9 +158,9 @@ const TimelineItem = ({
           <div className="tl-col-method">
             <Method method={method} />
           </div>
-          <div className="tl-col-url" title={url}>{url}</div>
+          <div className="tl-col-url" title={url} data-testid="timeline-url">{url}</div>
           <div className="tl-col-badge">
-            <span className={badge.badgeClass}>{badge.badgeLabel}</span>
+            <span className={badge.badgeClass} data-testid={`timeline-badge-${badge.kind}`}>{badge.badgeLabel}</span>
           </div>
           {!hideTimestamp && (
             <div className="tl-col-time">
@@ -169,7 +170,7 @@ const TimelineItem = ({
         </div>
 
         {isExpanded && (
-          <div className="tl-detail">
+          <div className="tl-detail" data-testid="timeline-detail">
             <div className="tl-header">
               <div className="tl-header-url" title={`${method || ''} ${url}`}>
                 <span className="tl-header-url-method">{method}</span>
@@ -181,8 +182,9 @@ const TimelineItem = ({
                   href="#"
                   title={canNavigate ? `Open ${sourceFile}` : sourceFile}
                   onClick={canNavigate ? handleNavigate : (ev) => ev.preventDefault()}
+                  data-testid="timeline-source-link"
                 >
-                  <span className="tl-header-src-file">{sourceFile}</span>
+                  <span className="tl-header-src-file" data-testid="timeline-source-file">{sourceFile}</span>
                   <span className="tl-header-src-icon">↗</span>
                 </a>
               )}

@@ -180,6 +180,7 @@ const ImportWorkspace = ({ onClose }) => {
                 />
                 <input
                   ref={fileInputRef}
+                  data-testid="import-workspace-file-input"
                   type="file"
                   className="hidden"
                   onChange={handleFileInputChange}

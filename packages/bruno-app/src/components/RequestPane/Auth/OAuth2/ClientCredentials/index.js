@@ -188,7 +188,7 @@ const OAuth2ClientCredentials = ({ save, item = {}, request, handleRun, updateAu
       {
         tokenPlacement === 'header'
           ? (
-              <div className="flex items-center gap-4 w-full" key="input-token-prefix">
+              <div className="flex items-center gap-4 w-full" key="input-token-prefix" data-testid="token-header-prefix">
                 <label className="block min-w-[140px]">{t('REQUEST_PANE.HEADER_PREFIX')}</label>
                 <div className="single-line-editor-wrapper flex-1">
                   <SingleLineEditor
@@ -204,7 +204,7 @@ const OAuth2ClientCredentials = ({ save, item = {}, request, handleRun, updateAu
               </div>
             )
           : (
-              <div className="flex items-center gap-4 w-full" key="input-token-query-param-key">
+              <div className="flex items-center gap-4 w-full" key="input-token-query-param-key" data-testid="token-query-param-key">
                 <label className="block min-w-[140px]">{t('REQUEST_PANE.QUERY_PARAM_KEY')}</label>
                 <div className="single-line-editor-wrapper flex-1">
                   <SingleLineEditor

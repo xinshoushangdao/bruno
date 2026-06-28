@@ -15,7 +15,7 @@ import { processOpenCollection } from 'utils/importers/opencollection';
 import { wsdlToBruno } from '@usebruno/converters';
 import { toastError } from 'utils/common/error';
 import { addLog } from 'providers/ReduxStore/slices/logs';
-import { useBetaFeature, BETA_FEATURES } from 'utils/beta-features';
+import Portal from 'components/Portal';
 import Modal from 'components/Modal';
 import Help from 'components/Help';
 import Dropdown from 'components/Dropdown';
@@ -111,15 +111,16 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
   const dispatch = useDispatch();
   const [groupingType, setGroupingType] = useState('tags');
   const [collectionFormat, setCollectionFormat] = useState(DEFAULT_COLLECTION_FORMAT);
-  const isOpenAPISyncEnabled = useBetaFeature(BETA_FEATURES.OPENAPI_SYNC);
-  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(isOpenAPISyncEnabled);
+  const [showFileFormat, setShowFileFormat] = useState(false);
+  const [enableCheckForSpecUpdates, setEnableCheckForSpecUpdates] = useState(false);
   const dropdownTippyRef = useRef();
+  const optionsDropdownTippyRef = useRef();
   const isOpenApi = format === 'openapi';
   const isZipImport = format === 'bruno-zip';
   const isOpenApiFromUrl = isOpenApi && !!sourceUrl && !filePath;
   const isOpenApiFromFile = isOpenApi && !!filePath && !sourceUrl;
   const isSwagger2 = isOpenApi && rawData?.swagger && String(rawData.swagger).startsWith('2');
-  const showCheckForSpecUpdatesOption = isOpenAPISyncEnabled && (isOpenApiFromUrl || isOpenApiFromFile);
+  const showCheckForSpecUpdatesOption = isOpenApiFromUrl || isOpenApiFromFile;
 
   const groupingOptions = useMemo(() => [
     { value: 'tags', label: t('SIDEBAR.TAGS'), description: t('SIDEBAR.GROUP_BY_TAGS'), testId: 'grouping-option-tags' },
@@ -205,6 +206,21 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
     dropdownTippyRef.current = ref;
   };
 
+  const onOptionsDropdownCreate = (ref) => {
+    optionsDropdownTippyRef.current = ref;
+  };
+
+  const ImportOptions = forwardRef((props, ref) => {
+    return (
+      <div ref={ref} className="flex items-center text-link cursor-pointer">
+        <button className="btn-advanced" type="button">
+          Options
+        </button>
+        <IconCaretDown className="caret ml-1" size={14} strokeWidth={2} />
+      </div>
+    );
+  });
+
   const GroupingDropdownIcon = forwardRef((props, ref) => {
     const selectedOption = groupingOptions.find((option) => option.value === groupingType);
     return (
@@ -250,140 +266,159 @@ const ImportCollectionLocation = ({ onClose, handleSubmit, rawData, format, sour
   };
 
   return (
-    <StyledWrapper>
-      <Modal
-        size="md"
-        title="Import Collection"
-        confirmText="Import"
-        handleConfirm={onSubmit}
-        handleCancel={onClose}
-        dataTestId="import-collection-location-modal"
-      >
-        <form className="bruno-form" onSubmit={(e) => e.preventDefault()}>
-          <div>
-            <label htmlFor="collectionName" className="block font-medium">
-              {t('COMMON.NAME')}
-            </label>
-            <div className="mt-2">{collectionName}</div>
-
-            <>
-              <label htmlFor="collectionLocation" className="font-medium mt-4 flex items-center">
-                Location
-                <Help>
-                  <p>Bruno stores your collections on your computer's filesystem.</p>
-                  <p className="mt-2">Choose the location where you want to store this collection.</p>
-                </Help>
-              </label>
-              <input
-                id="collection-location"
-                type="text"
-                name="collectionLocation"
-                className="block textbox mt-2 w-full cursor-pointer"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                value={formik.values.collectionLocation || ''}
-                onClick={browse}
-                onChange={(e) => {
-                  formik.setFieldValue('collectionLocation', e.target.value);
-                }}
-              />
-            </>
-            {formik.touched.collectionLocation && formik.errors.collectionLocation ? (
-              <div className="text-red-500">{formik.errors.collectionLocation}</div>
-            ) : null}
-
-            <div className="mt-1">
-              <span
-                data-testid="import-collection-browse-link"
-                className="text-link cursor-pointer hover:underline"
-                onClick={browse}
-              >
-                {t('COMMON.BROWSE')}
-              </span>
-            </div>
-
-            {!isZipImport && (
-              <div className="mt-4">
-                <label htmlFor="format" className="flex items-center font-medium">
-                  File Format
-                  <Help width="300">
-                    <p>Choose the file format for storing requests in this collection.</p>
-                    <p className="mt-2">
-                      <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
-                    </p>
-                    <p className="mt-1">
-                      <strong>BRU:</strong> Bruno's native file format (.bru files)
-                    </p>
-                  </Help>
-                </label>
-                <select
-                  id="format"
-                  name="format"
-                  className="block textbox mt-2 w-full"
-                  value={collectionFormat}
-                  onChange={(e) => setCollectionFormat(e.target.value)}
-                >
-                  <option value="yml">{t('SIDEBAR.OPENCOLLECTION_FORMAT')}</option>
-                  <option value="bru">{t('SIDEBAR.BRU_FORMAT_OPTION')}</option>
-                </select>
-              </div>
-            )}
-          </div>
-
-          {isOpenApi && (
-            <div className="mt-4 flex gap-4 items-center justify-between">
-              <div>
-                <label htmlFor="groupingType" className="block font-medium">
-                  {t('SIDEBAR.FOLDER_ARRANGEMENT')}
-                </label>
-                <p className="text-muted text-xs mt-1 mb-2">
-                  {t('SIDEBAR.FOLDER_ARRANGEMENT_DESC')}
-                </p>
-              </div>
-              <div className="relative">
-                <Dropdown onCreate={onDropdownCreate} icon={<GroupingDropdownIcon />} placement="bottom-start">
-                  {groupingOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className="dropdown-item"
-                      data-testid={option.testId}
-                      onClick={() => {
-                        dropdownTippyRef?.current?.hide();
-                        setGroupingType(option.value);
-                      }}
-                    >
-                      {option.label}
-                    </div>
-                  ))}
+    <Portal>
+      <StyledWrapper>
+        <Modal
+          size="md"
+          title="Import Collection"
+          confirmText="Import"
+          handleConfirm={onSubmit}
+          handleCancel={onClose}
+          dataTestId="import-collection-location-modal"
+          footerLeft={
+            !isZipImport ? (
+              <div className="advanced-options flex">
+                <Dropdown onCreate={onOptionsDropdownCreate} icon={<ImportOptions />} placement="bottom-start">
+                  <div
+                    className="dropdown-item"
+                    data-testid="show-file-format-toggle"
+                    onClick={() => {
+                      optionsDropdownTippyRef?.current?.hide();
+                      setShowFileFormat(!showFileFormat);
+                    }}
+                  >
+                    {showFileFormat ? 'Hide File Format' : 'Show File Format'}
+                  </div>
                 </Dropdown>
               </div>
-            </div>
-          )}
-
-          {showCheckForSpecUpdatesOption && (
-            <div className={`mt-4 ${isSwagger2 ? 'opacity-50 pointer-events-none' : ''}`}>
-              <label className={`flex items-center gap-2 ${isSwagger2 ? '' : 'cursor-pointer'}`}>
-                <input
-                  type="checkbox"
-                  checked={isSwagger2 ? false : enableCheckForSpecUpdates}
-                  onChange={(e) => setEnableCheckForSpecUpdates(e.target.checked)}
-                  disabled={isSwagger2}
-                  className={`checkbox ${isSwagger2 ? '' : 'cursor-pointer'}`}
-                />
-                <span className="font-medium">{t('SIDEBAR.CHECK_FOR_SPEC_UPDATES')}</span>
+            ) : null
+          }
+        >
+          <form className="bruno-form" onSubmit={(e) => e.preventDefault()}>
+            <div>
+              <label htmlFor="collectionName" className="block font-medium">
+                {t('COMMON.NAME')}
               </label>
-              <p className="text-muted text-xs mt-1">
-                {isSwagger2
-                  ? t('SIDEBAR.OPENAPI_SYNC_NOT_SWAGGER2')
-                  : t('SIDEBAR.STAY_NOTIFIED_OF_SPEC')}
-              </p>
+              <div className="mt-2">{collectionName}</div>
+
+              <>
+                <label htmlFor="collectionLocation" className="font-medium mt-4 flex items-center">
+                  Location
+                  <Help>
+                    <p>Bruno stores your collections on your computer's filesystem.</p>
+                    <p className="mt-2">Choose the location where you want to store this collection.</p>
+                  </Help>
+                </label>
+                <input
+                  id="collection-location"
+                  type="text"
+                  name="collectionLocation"
+                  className="block textbox mt-2 w-full cursor-pointer"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  value={formik.values.collectionLocation || ''}
+                  onClick={browse}
+                  onChange={(e) => {
+                    formik.setFieldValue('collectionLocation', e.target.value);
+                  }}
+                />
+              </>
+              {formik.touched.collectionLocation && formik.errors.collectionLocation ? (
+                <div className="text-red-500">{formik.errors.collectionLocation}</div>
+              ) : null}
+
+              <div className="mt-1">
+                <span
+                  data-testid="import-collection-browse-link"
+                  className="text-link cursor-pointer hover:underline"
+                  onClick={browse}
+                >
+                  {t('COMMON.BROWSE')}
+                </span>
+              </div>
+
+              {showFileFormat && !isZipImport && (
+                <div className="mt-4">
+                  <label htmlFor="format" className="flex items-center font-medium">
+                    File Format
+                    <Help width="300">
+                      <p>Choose the file format for storing requests in this collection.</p>
+                      <p className="mt-2">
+                        <strong>OpenCollection (YAML):</strong> Industry-standard YAML format (.yml files)
+                      </p>
+                      <p className="mt-1">
+                        <strong>BRU:</strong> Bruno's native file format (.bru files)
+                      </p>
+                    </Help>
+                  </label>
+                  <select
+                    id="format"
+                    name="format"
+                    className="block textbox mt-2 w-full"
+                    value={collectionFormat}
+                    onChange={(e) => setCollectionFormat(e.target.value)}
+                  >
+                    <option value="yml">{t('SIDEBAR.OPENCOLLECTION_FORMAT')}</option>
+                    <option value="bru">{t('SIDEBAR.BRU_FORMAT_OPTION')}</option>
+                  </select>
+                </div>
+              )}
             </div>
-          )}
-        </form>
-      </Modal>
-    </StyledWrapper>
+
+            {isOpenApi && (
+              <div className="mt-4 flex gap-4 items-center justify-between">
+                <div>
+                  <label htmlFor="groupingType" className="block font-medium">
+                    {t('SIDEBAR.FOLDER_ARRANGEMENT')}
+                  </label>
+                  <p className="text-muted text-xs mt-1 mb-2">
+                    {t('SIDEBAR.FOLDER_ARRANGEMENT_DESC')}
+                  </p>
+                </div>
+                <div className="relative">
+                  <Dropdown onCreate={onDropdownCreate} icon={<GroupingDropdownIcon />} placement="bottom-start">
+                    {groupingOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        className="dropdown-item"
+                        data-testid={option.testId}
+                        onClick={() => {
+                          dropdownTippyRef?.current?.hide();
+                          setGroupingType(option.value);
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </Dropdown>
+                </div>
+              </div>
+            )}
+            {showCheckForSpecUpdatesOption && (
+              <div className={`mt-4 ${isSwagger2 ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className={`flex items-center gap-2 ${isSwagger2 ? '' : 'cursor-pointer'}`}>
+                  <input
+                    type="checkbox"
+                    checked={isSwagger2 ? false : enableCheckForSpecUpdates}
+                    onChange={(e) => setEnableCheckForSpecUpdates(e.target.checked)}
+                    disabled={isSwagger2}
+                    className={`checkbox ${isSwagger2 ? '' : 'cursor-pointer'}`}
+                  />
+                  <span className="font-medium">{t('SIDEBAR.CHECK_FOR_SPEC_UPDATES')}</span>
+                </label>
+                <p className="text-muted text-xs mt-1">
+                  {isSwagger2
+                    ? t('SIDEBAR.OPENAPI_SYNC_NOT_SWAGGER2')
+                    : t('SIDEBAR.STAY_NOTIFIED_OF_SPEC')}
+                </p>
+              </div>
+            )}
+          </form>
+        </Modal>
+      </StyledWrapper>
+    </Portal>
   );
 };
 

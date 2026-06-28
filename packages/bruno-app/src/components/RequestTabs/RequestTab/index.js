@@ -17,6 +17,7 @@ import ConfirmCloseEnvironment from 'components/Environments/ConfirmCloseEnviron
 import RequestTabNotFound from './RequestTabNotFound';
 import RequestTabLoading from './RequestTabLoading';
 import SpecialTab from './SpecialTab';
+import { IconAppWindow } from '@tabler/icons';
 import StyledWrapper from './StyledWrapper';
 import MenuDropdown from 'ui/MenuDropdown';
 import CloneCollectionItem from 'components/Sidebar/Collections/Collection/CollectionItem/CloneCollectionItem/index';
@@ -54,8 +55,9 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
       || tab.type === 'graphql-request'
       || tab.type === 'grpc-request'
       || tab.type === 'ws-request';
+    const shouldSyncUid = isRequestType || tab.type === 'folder-settings';
 
-    if (!isRequestType || !tab.pathname || !item?.uid || tab.uid === item.uid) {
+    if (!shouldSyncUid || !tab.pathname || !item?.uid || tab.uid === item.uid) {
       return;
     }
 
@@ -194,7 +196,8 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
     'workspaceOverview',
     'workspaceEnvironments',
     'openapi-sync',
-    'openapi-spec'
+    'openapi-spec',
+    'changelog'
   ];
 
   const hasDraft = tab.type === 'collection-settings' && collection?.draft;
@@ -208,7 +211,7 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
 
   // Close tab shortcut — draft-aware, only active for the focused tab
   useKeybinding('closeTab', () => {
-    if (tab.type === 'request' || tab.type === 'grpc-request' || tab.type === 'ws-request' || tab.type === 'graphql-request') {
+    if (tab.type === 'request' || tab.type === 'http-request' || tab.type === 'grpc-request' || tab.type === 'ws-request' || tab.type === 'graphql-request') {
       if (hasChanges) {
         setShowConfirmClose(true);
       } else {
@@ -255,7 +258,9 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
         if (environmentUid?.startsWith('dotenv:')) {
           window.dispatchEvent(new Event('dotenv-save'));
         } else {
-          dispatch(saveEnvironment(variables, environmentUid, collection.uid));
+          dispatch(saveEnvironment(variables, environmentUid, collection.uid))
+            .then(() => toast.success('Changes saved successfully'))
+            .catch(() => toast.error('An error occurred while saving the changes'));
         }
       }
     } else if (tab.type === 'global-environment-settings') {
@@ -264,7 +269,9 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
         if (environmentUid?.startsWith('dotenv:')) {
           window.dispatchEvent(new Event('dotenv-save'));
         } else {
-          dispatch(saveGlobalEnvironment({ variables, environmentUid }));
+          dispatch(saveGlobalEnvironment({ variables, environmentUid }))
+            .then(() => toast.success('Changes saved successfully'))
+            .catch(() => toast.error('An error occurred while saving the changes'));
         }
       }
     } else if (tab.type === 'folder-settings') {
@@ -576,9 +583,15 @@ const RequestTab = ({ tab, collection, tabIndex, collectionRequestTabs, folderUi
           }
         }}
       >
-        <span className="tab-method uppercase" style={{ color: getMethodColor(method) }}>
-          {method}
-        </span>
+        {item.type === 'app' ? (
+          <span className="tab-method flex items-center" aria-label="App">
+            <IconAppWindow size={14} strokeWidth={1.5} />
+          </span>
+        ) : (
+          <span className="tab-method uppercase" style={{ color: getMethodColor(method) }}>
+            {method}
+          </span>
+        )}
         <span ref={tabNameRef} className="ml-1 tab-name" title={item.name}>
           {item.name}
         </span>

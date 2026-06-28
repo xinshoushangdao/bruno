@@ -6,11 +6,12 @@ import { saveCollectionSettings } from 'providers/ReduxStore/slices/collections/
 import { get } from 'lodash';
 import { useTranslation } from 'react-i18next';
 import Button from 'ui/Button';
+import { DEFAULT_PRESET_REQUEST_TYPE, PRESET_REQUEST_TYPES } from 'utils/common/constants';
 
 const PresetsSettings = ({ collection }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const initialPresets = { requestType: 'http', requestUrl: '' };
+  const initialPresets = { requestType: DEFAULT_PRESET_REQUEST_TYPE, requestUrl: '' };
 
   // Get presets from draft.brunoConfig if it exists, otherwise from brunoConfig
   const currentPresets = collection.draft?.brunoConfig
@@ -49,12 +50,13 @@ const PresetsSettings = ({ collection }) => {
           <div className="flex items-center">
             <input
               id="http"
+              data-testid="presets-request-type-http"
               className="cursor-pointer"
               type="radio"
               name="requestType"
               onChange={handleRequestTypeChange}
-              value="http"
-              checked={(currentPresets.requestType || 'http') === 'http'}
+              value={PRESET_REQUEST_TYPES.HTTP}
+              checked={(currentPresets.requestType || DEFAULT_PRESET_REQUEST_TYPE) === PRESET_REQUEST_TYPES.HTTP}
             />
             <label htmlFor="http" className="ml-1 cursor-pointer select-none">
               HTTP
@@ -62,12 +64,13 @@ const PresetsSettings = ({ collection }) => {
 
             <input
               id="graphql"
+              data-testid="presets-request-type-graphql"
               className="ml-4 cursor-pointer"
               type="radio"
               name="requestType"
               onChange={handleRequestTypeChange}
-              value="graphql"
-              checked={(currentPresets.requestType || 'http') === 'graphql'}
+              value={PRESET_REQUEST_TYPES.GRAPHQL}
+              checked={(currentPresets.requestType || DEFAULT_PRESET_REQUEST_TYPE) === PRESET_REQUEST_TYPES.GRAPHQL}
             />
             <label htmlFor="graphql" className="ml-1 cursor-pointer select-none">
               GraphQL
@@ -75,12 +78,13 @@ const PresetsSettings = ({ collection }) => {
 
             <input
               id="grpc"
+              data-testid="presets-request-type-grpc"
               className="ml-4 cursor-pointer"
               type="radio"
               name="requestType"
               onChange={handleRequestTypeChange}
-              value="grpc"
-              checked={(currentPresets.requestType || 'http') === 'grpc'}
+              value={PRESET_REQUEST_TYPES.GRPC}
+              checked={(currentPresets.requestType || DEFAULT_PRESET_REQUEST_TYPE) === PRESET_REQUEST_TYPES.GRPC}
             />
             <label htmlFor="grpc" className="ml-1 cursor-pointer select-none">
               gRPC
@@ -88,12 +92,13 @@ const PresetsSettings = ({ collection }) => {
 
             <input
               id="ws"
+              data-testid="presets-request-type-ws"
               className="ml-4 cursor-pointer"
               type="radio"
               name="requestType"
               onChange={handleRequestTypeChange}
-              value="ws"
-              checked={(currentPresets.requestType || 'http') === 'ws'}
+              value={PRESET_REQUEST_TYPES.WS}
+              checked={(currentPresets.requestType || DEFAULT_PRESET_REQUEST_TYPE) === PRESET_REQUEST_TYPES.WS}
             />
             <label htmlFor="ws" className="ml-1 cursor-pointer select-none">
               WebSocket
@@ -108,6 +113,7 @@ const PresetsSettings = ({ collection }) => {
             <div className="flex items-center flex-grow input-container h-full">
               <input
                 id="request-url"
+                data-testid="presets-request-url"
                 type="text"
                 name="requestUrl"
                 placeholder={t('COLLECTION_SETTINGS.REQUEST_URL')}
@@ -125,7 +131,7 @@ const PresetsSettings = ({ collection }) => {
         </div>
 
         <div className="mt-6">
-          <Button type="button" size="sm" onClick={handleSave}>
+          <Button type="button" size="sm" data-testid="presets-save-btn" onClick={handleSave}>
             {t('COMMON.SAVE')}
           </Button>
         </div>

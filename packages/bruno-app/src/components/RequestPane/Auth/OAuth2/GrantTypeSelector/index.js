@@ -82,6 +82,7 @@ const GrantTypeSelector = ({ item = {}, request, updateAuth, collection }) => {
             { id: 'implicit', label: t('REQUEST_PANE.IMPLICIT'), onClick: () => onGrantTypeChange('implicit') },
             { id: 'client_credentials', label: t('REQUEST_PANE.CLIENT_CREDENTIALS'), onClick: () => onGrantTypeChange('client_credentials') }
           ]}
+          data-testid="grant-type-dropdown"
           selectedItemId={oAuth?.grantType}
           placement="bottom-end"
         >
