@@ -1,3 +1,8 @@
+// Initialize i18n for tests so t() returns translated strings instead of keys
+// Set language to 'en' before requiring i18n (default is 'zh' which breaks tests expecting English)
+window.localStorage.setItem('bruno-language', 'en');
+require('./src/i18n').default.changeLanguage('en');
+
 global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}

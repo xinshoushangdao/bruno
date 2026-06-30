@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useBetaFeature, BETA_FEATURES } from 'utils/beta-features';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   IconCategory,
@@ -36,6 +37,7 @@ import { uuid } from 'utils/common';
 import toast from 'react-hot-toast';
 import Dropdown from 'components/Dropdown';
 import MenuDropdown from 'ui/MenuDropdown';
+import StatusBadge from 'ui/StatusBadge/index';
 import CloseWorkspace from 'components/Sidebar/CloseWorkspace';
 import CreateWorkspace from 'components/WorkspaceSidebar/CreateWorkspace';
 import EnvironmentSelector from 'components/Environments/EnvironmentSelector';
